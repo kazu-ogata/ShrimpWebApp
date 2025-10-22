@@ -146,8 +146,4 @@ export const resetPassword = async (req, res) => {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Something went wrong during password reset.' });
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> d28aea2f82f8131f8618d0a80d90e8bb4ae2995b
