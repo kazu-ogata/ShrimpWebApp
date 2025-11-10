@@ -65,7 +65,7 @@ function App() {
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={
             isAuthenticated ? (
-              <Dashboard />
+              <Dashboard_upload />
             ) : (
               <Navigate to="/login" replace />
             )
