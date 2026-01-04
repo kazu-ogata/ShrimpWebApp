@@ -2,9 +2,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import { sendPasswordResetEmail } from '../config/mail.config.js';
+<<<<<<< HEAD
 import QrSession from '../models/qrSession.model.js';
 
 // --- Signup Function ---
+=======
+
+// --- Signup Function (Unchanged) ---
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const signup = async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {
@@ -15,7 +20,6 @@ export const signup = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: 'Username or email already exists' });
     }
-
     const hashedPassword = await bcrypt.hash(password, 12);
     const result = await User.create({ username, email, password: hashedPassword });
     const token = jwt.sign({ username: result.username, id: result._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
@@ -27,7 +31,11 @@ export const signup = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // --- Login Function ---
+=======
+// --- Login Function (Unchanged) ---
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const login = async (req, res) => {
   const { loginInput, password } = req.body; // Accepts username or email
   if (!loginInput || !password) {
@@ -38,12 +46,10 @@ export const login = async (req, res) => {
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-
     const token = jwt.sign({ username: existingUser.username, id: existingUser._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
     // Send back user info (excluding password) and token
     res.status(200).json({ success: true, message: 'Login Successful', result: { id: existingUser._id, username: existingUser.username, email: existingUser.email }, token });
@@ -53,13 +59,26 @@ export const login = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // --- Recover Password Function ---
+=======
+// --- Recover Password Function (Header Check REMOVED) ---
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const recoverPassword = async (req, res) => {
+  /*
+  // --- HEADER CHECK REMOVED ---
+  const clientType = req.headers['x-client-type'];
+  if (clientType !== 'mobile') {
+     console.warn(`[recoverPassword] Blocked request from non-mobile client: ${clientType || 'Not Provided'}`);
+     return res.status(403).json({ message: 'Password recovery is only available from the mobile app.' });
+  }
+  // ------------------------
+  */
+
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ message: 'Email address is required' });
   }
-
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -67,18 +86,22 @@ export const recoverPassword = async (req, res) => {
       // Don't reveal user existence
       return res.status(200).json({ message: 'If an account with that email exists, a password reset code has been sent.' });
     }
+<<<<<<< HEAD
 
     // Generate a simple 6-digit code
+=======
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiryDate = new Date(Date.now() + 3600000); // 1 hour expiration
-
+    const expiryDate = new Date(Date.now() + 3600000); // 1 hour
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = expiryDate;
     await user.save();
+<<<<<<< HEAD
 
     // Send the email
+=======
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     const emailSent = await sendPasswordResetEmail(user.email, resetToken);
-
     if (emailSent) {
       res.status(200).json({ message: 'Password reset code sent to email.' });
     } else {
@@ -88,75 +111,96 @@ export const recoverPassword = async (req, res) => {
       await user.save();
       res.status(500).json({ message: 'Error sending password reset email.' });
     }
-
   } catch (error) {
     console.error('Recover password error:', error);
     res.status(500).json({ message: 'Something went wrong during password recovery.' });
   }
 };
 
-// --- Verify Reset Code Function ---
+// --- Verify Reset Code Function (Header Check REMOVED) ---
 export const verifyResetCode = async (req, res) => {
+    /*
+    // --- HEADER CHECK REMOVED ---
+    const clientType = req.headers['x-client-type'];
+    if (clientType !== 'mobile') {
+        console.warn(`[verifyResetCode] Blocked request from non-mobile client: ${clientType || 'Not Provided'}`);
+        return res.status(403).json({ message: 'Password recovery is only available from the mobile app.' });
+    }
+    // ------------------------
+    */
+
     const { email, code } = req.body;
     if (!email || !code) {
         return res.status(400).json({ message: 'Email and code are required' });
     }
-
     try {
         const user = await User.findOne({
             email,
             resetPasswordToken: code,
-            resetPasswordExpires: { $gt: Date.now() } // Check expiry
+            resetPasswordExpires: { $gt: Date.now() }
         });
-
         if (!user) {
             return res.status(400).json({ message: 'Password reset code is invalid or has expired.' });
         }
 
         // Send success if code is valid
         res.status(200).json({ message: 'Code verified successfully.' });
-
     } catch (error) {
         console.error('Verify reset code error:', error);
         res.status(500).json({ message: 'Something went wrong during code verification.' });
     }
 };
 
-// --- Reset Password Function ---
+// --- Reset Password Function (Header Check REMOVED) ---
 export const resetPassword = async (req, res) => {
+  /*
+  // --- HEADER CHECK REMOVED ---
+  const clientType = req.headers['x-client-type'];
+  if (clientType !== 'mobile') {
+     console.warn(`[resetPassword] Blocked request from non-mobile client: ${clientType || 'Not Provided'}`);
+     return res.status(403).json({ message: 'Password recovery is only available from the mobile app.' });
+  }
+  // ------------------------
+  */
+
   const { email, code, newPassword } = req.body;
   if (!email || !code || !newPassword) {
     return res.status(400).json({ message: 'Email, code, and new password are required' });
   }
-
   try {
     const user = await User.findOne({
       email,
       resetPasswordToken: code,
-      resetPasswordExpires: { $gt: Date.now() } // Check expiry
+      resetPasswordExpires: { $gt: Date.now() }
     });
-
     if (!user) {
       return res.status(400).json({ message: 'Password reset code is invalid or has expired.' });
     }
+<<<<<<< HEAD
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password and clear reset fields
+=======
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     user.password = hashedPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
+<<<<<<< HEAD
 
     // Send success message
+=======
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     res.status(200).json({ success: true, message: 'Password has been reset successfully.' });
-
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Something went wrong during password reset.' });
   }
 };
+<<<<<<< HEAD
 
 export const authorizeMachine = async (req, res) => {
   const { sessionId, userId } = req.body;
@@ -178,3 +222,5 @@ export const authorizeMachine = async (req, res) => {
     res.status(500).json({ message: 'Authorization failed', error: error.message });
   }
 };
+=======
+>>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
