@@ -2,14 +2,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import { sendPasswordResetEmail } from '../config/mail.config.js';
-<<<<<<< HEAD
-import QrSession from '../models/qrSession.model.js';
-
-// --- Signup Function ---
-=======
 
 // --- Signup Function (Unchanged) ---
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const signup = async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {
@@ -23,7 +17,6 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const result = await User.create({ username, email, password: hashedPassword });
     const token = jwt.sign({ username: result.username, id: result._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-    // Send back user info (excluding password) and token
     res.status(201).json({ result: { id: result._id, username: result.username, email: result.email }, token });
   } catch (error) {
     console.error('Signup error:', error);
@@ -31,13 +24,9 @@ export const signup = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// --- Login Function ---
-=======
 // --- Login Function (Unchanged) ---
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const login = async (req, res) => {
-  const { loginInput, password } = req.body; // Accepts username or email
+  const { loginInput, password } = req.body;
   if (!loginInput || !password) {
     return res.status(400).json({ message: 'Identifier (username/email) and password are required' });
   }
@@ -51,7 +40,6 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     const token = jwt.sign({ username: existingUser.username, id: existingUser._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-    // Send back user info (excluding password) and token
     res.status(200).json({ success: true, message: 'Login Successful', result: { id: existingUser._id, username: existingUser.username, email: existingUser.email }, token });
   } catch (error) {
     console.error('Login error:', error);
@@ -59,11 +47,7 @@ export const login = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// --- Recover Password Function ---
-=======
 // --- Recover Password Function (Header Check REMOVED) ---
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
 export const recoverPassword = async (req, res) => {
   /*
   // --- HEADER CHECK REMOVED ---
@@ -83,29 +67,17 @@ export const recoverPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       console.log('Password reset attempt for non-existent email:', email);
-      // Don't reveal user existence
       return res.status(200).json({ message: 'If an account with that email exists, a password reset code has been sent.' });
     }
-<<<<<<< HEAD
-
-    // Generate a simple 6-digit code
-=======
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
     const expiryDate = new Date(Date.now() + 3600000); // 1 hour
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = expiryDate;
     await user.save();
-<<<<<<< HEAD
-
-    // Send the email
-=======
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     const emailSent = await sendPasswordResetEmail(user.email, resetToken);
     if (emailSent) {
       res.status(200).json({ message: 'Password reset code sent to email.' });
     } else {
-      // If email fails, clear the token to allow retry
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       await user.save();
@@ -142,8 +114,6 @@ export const verifyResetCode = async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: 'Password reset code is invalid or has expired.' });
         }
-
-        // Send success if code is valid
         res.status(200).json({ message: 'Code verified successfully.' });
     } catch (error) {
         console.error('Verify reset code error:', error);
@@ -176,51 +146,14 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: 'Password reset code is invalid or has expired.' });
     }
-<<<<<<< HEAD
-
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-    // Update password and clear reset fields
-=======
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     user.password = hashedPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
-<<<<<<< HEAD
-
-    // Send success message
-=======
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
     res.status(200).json({ success: true, message: 'Password has been reset successfully.' });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Something went wrong during password reset.' });
   }
 };
-<<<<<<< HEAD
-
-export const authorizeMachine = async (req, res) => {
-  const { sessionId, userId } = req.body;
-
-  try {
-    // Look for the "pending" session the Pi just created
-    const session = await QrSession.findOneAndUpdate(
-      { sessionId, status: 'pending' },
-      { userId, status: 'completed' },
-      { new: true }
-    );
-
-    if (!session) {
-      return res.status(404).json({ message: 'QR Code is expired or invalid.' });
-    }
-
-    res.status(200).json({ success: true, message: 'Machine authorized!' });
-  } catch (error) {
-    res.status(500).json({ message: 'Authorization failed', error: error.message });
-  }
-};
-=======
->>>>>>> 4d650426e7e7c2dadd09ac53b2578d602f8a8c9a
